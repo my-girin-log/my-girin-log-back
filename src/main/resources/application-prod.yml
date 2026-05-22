@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/mygrinlog?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+    open-in-view: false
+    show-sql: false
+  sql:
+    init:
+      mode: never   # schema.sql 은 운영 마이그레이션 도구로 별도 적용 권장
+      schema-locations: classpath:db/schema-mysql.sql

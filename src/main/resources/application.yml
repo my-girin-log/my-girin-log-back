@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: my-grin-log
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    default-property-inclusion: non_null
+
+  ai:
+    anthropic:
+      # 빈 키면 Spring AI 자동설정이 실패. 더미를 깔아 두고 실제 호출은
+      # wootegotchi.llm.enabled 로 차단한다 (LlmClient 참조).
+      api-key: ${ANTHROPIC_API_KEY:dummy-key-disabled}
+      chat:
+        options:
+          # per-call 로 override 하므로 여기는 안전한 기본값만.
+          model: claude-sonnet-4-6
+          temperature: 0.7
+
+server:
+  port: 8080
+
+# 우테고치 도메인 상수 — 데모 중 가속이 필요하면 키움
+wootegotchi:
+  exp:
+    per-message: 2
+    per-diary: 5
+    per-retrospective: 10
+  level:
+    cap: 2
+    expPerLevel: 10
+  condition:
+    goodMaxDays: 1
+    badMaxDays: 3
+  pet-image:
+    cdn-base: ${PET_CDN_BASE:/assets/giraffe}
+    frames: 4
+  auth:
+    allowDemoHeader: ${AUTH_DEMO_HEADER:true}     # X-Demo-User-Id 헤더로 토큰 없이 가장 — 운영에서는 false
+    githubAuthorizeUrl: ${GITHUB_AUTHORIZE_URL:}  # 비어 있으면 /auth/github 가 callback 으로 즉시 302
+    githubClientId: ${GITHUB_CLIENT_ID:}
+    githubRedirectUri: ${GITHUB_REDIRECT_URI:}
+  service-clock:
+    zone: Asia/Seoul
+    day-start-hour: 6
+  llm:
+    enabled: ${LLM_ENABLED:false}   # false 면 stub Generator 사용 (키 없이도 데모 가능)
+    retries: 2                       # 호출 실패 시 재시도 횟수 (총 시도 = retries + 1)
+    models:
+      # 카키 레퍼런스(techgochi) 의 모델 분배 그대로 차용:
+      #  - 퀄리티가 중요한 곳(persona, retro_writing) = Opus
+      #  - 빠른 응답이 중요한 곳(question) = Haiku
+      #  - 중간 + 분석 = Sonnet
+      persona:        { model: claude-opus-4-7,           temperature: 0.3, maxTokens: 4000 }
+      question:       { model: claude-haiku-4-5-20251001, temperature: 0.7, maxTokens: 200  }
+      diary:          { model: claude-sonnet-4-6,         temperature: 0.2, maxTokens: 4000 }
+      retroAnalysis:  { model: claude-sonnet-4-6,         temperature: 0.3, maxTokens: 3000 }
+      retroWriting:   { model: claude-opus-4-7,           temperature: 0.6, maxTokens: 6000 }
+      critique:       { model: claude-sonnet-4-6,         temperature: 0.1, maxTokens: 4000 }
