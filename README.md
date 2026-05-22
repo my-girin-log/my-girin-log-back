@@ -152,6 +152,41 @@ Critique { passes, issues[], revised_markdown? }
 - critical/major + revised 없음  → fix-up prompt 로 1회 재작성
 ```
 
+## Render 배포 (프론트가 서버에서 호출하게)
+
+레포에 [`render.yaml`](render.yaml) 과 [`Dockerfile`](Dockerfile) 이 포함돼 있어 **클릭 4-5번이면 끝납니다**. 무료 플랜 기준.
+
+1. [Render 가입](https://render.com) (GitHub 로그인, 결제정보 불필요)
+2. 대시보드 → **New +** → **Blueprint** → GitHub 권한 부여 → `my-girin-log-back` 또는 `demo-repository` 선택
+3. Render 가 `render.yaml` 을 읽어 web service 1개 자동 생성 → **Apply** 클릭. 첫 빌드는 3-5분
+4. 빌드 완료 후 대시보드 → **Environment** 탭에서 시크릿 입력:
+    - `ANTHROPIC_API_KEY` → 실제 키 (선택 — 미입력 시 stub 모드 유지)
+    - `LLM_ENABLED` → `true` (Claude 호출 켜려면)
+    - `CORS_ALLOWED_ORIGINS` → 콤마구분, 프론트 호스팅 도메인 추가 가능
+    - `CORS_ALLOWED_ORIGIN_PATTERNS` → 와일드카드 패턴 (예: `https://*.vercel.app`)
+5. 발급된 URL 헬스체크:
+    ```bash
+    curl https://<your-render-host>.onrender.com/actuator/health
+    # → {"status":"UP", ...}
+    ```
+
+### 프론트에서 Render 백엔드 사용
+
+프론트 레포 `.env.production` 에:
+```
+VITE_API_MODE=real
+VITE_API_BASE_URL=https://<your-render-host>.onrender.com/api/v1
+```
+그리고 `npm run build && npm run preview` 하거나 Vercel/Netlify 에 빌드해 올리면 그대로 Render 백엔드와 통신.
+
+### 무료 플랜 제약
+
+- **15분 idle 후 sleep** — 첫 호출 시 컨테이너 부팅 ~30초. 그 다음은 정상
+- **512MB RAM / 0.1 CPU** — Spring Boot + H2 in-memory 로 충분. Dockerfile 의 `MaxRAMPercentage=70` 설정으로 OOM 방지
+- **데이터 비영속** — H2 in-memory 라 재배포/재시작 시 모든 유저/다이어리 초기화. 데모 한정
+
+영속성이 필요하면 [Render PostgreSQL 무료 add-on](https://render.com/docs/databases) 붙이고 `application-render.yml` 의 datasource 만 변경. 또는 외부 MySQL.
+
 ## MySQL 운영
 
 ```bash

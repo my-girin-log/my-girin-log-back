@@ -18,7 +18,18 @@ spring:
           temperature: 0.7
 
 server:
-  port: 8080
+  port: ${PORT:8080}   # Render/Fly/Heroku 류 PaaS 는 PORT 환경변수로 포트를 주입
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
 
 # 우테고치 도메인 상수 — 데모 중 가속이 필요하면 키움
 wootegotchi:

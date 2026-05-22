@@ -1,0 +1,33 @@
+# Render(또는 유사 PaaS) 배포용 프로필.
+#  - H2 in-memory (재시작 시 데이터 초기화. 데모 한정)
+#  - LLM/CORS/포트 모두 Render 대시보드 환경변수에서 주입
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:mygrinlog-prod;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+    open-in-view: false
+    show-sql: false
+  sql:
+    init:
+      mode: never
+
+wootegotchi:
+  cors:
+    # 콤마구분 — Render 대시보드에서 CORS_ALLOWED_ORIGINS 로 override.
+    # 정확한 origin 만. 와일드카드는 patterns 쪽으로.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+    # 패턴 (https://*.vercel.app 처럼 와일드카드 필요한 경우).
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}

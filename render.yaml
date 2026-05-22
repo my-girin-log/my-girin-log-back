@@ -1,0 +1,30 @@
+# Render Blueprint — 이 파일이 있으면 Render 대시보드 "New + → Blueprint" 에서 GitHub 레포만 선택하면
+# 별도 설정 없이 자동으로 web service 가 만들어진다. 무료 플랜으로 시작.
+#
+# 배포 후 대시보드 → Environment 에서 시크릿(특히 ANTHROPIC_API_KEY) 추가.
+
+services:
+  - type: web
+    name: my-grin-log-back
+    runtime: docker
+    plan: free
+    region: singapore        # 한국에서 가장 가까운 무료 리전. 다른 곳 원하면 변경.
+    branch: main
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      # LLM 은 기본 stub. 실제 Claude 호출 원하면 dashboard 에서 LLM_ENABLED=true 변경 + 키 입력.
+      - key: LLM_ENABLED
+        value: "false"
+      - key: ANTHROPIC_API_KEY
+        sync: false          # 시크릿 — Render 대시보드에서 직접 입력
+      # CORS — 프론트 도메인 추가될 때마다 dashboard 에서 갱신.
+      - key: CORS_ALLOWED_ORIGINS
+        value: http://localhost:5173,http://127.0.0.1:5173
+      # 와일드카드 패턴은 Vercel/Netlify 미리보기 배포 자동 매칭용. 안 쓰면 비워두기.
+      - key: CORS_ALLOWED_ORIGIN_PATTERNS
+        value: ""
+      # 데모 헤더는 운영에서는 끄는 게 좋지만, 시연 편의상 유지.
+      - key: AUTH_DEMO_HEADER
+        value: "true"

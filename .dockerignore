@@ -1,0 +1,14 @@
+# 빌드 캐시/IDE/OS 잡파일 — 도커 컨텍스트 가볍게
+.git
+.gradle
+build
+.idea
+*.iml
+.DS_Store
+.claude
+.env
+.env.*
+!.env.example
+node_modules
+README.md
+docs
