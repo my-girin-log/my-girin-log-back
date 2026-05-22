@@ -1,5 +1,6 @@
 package com.mygrinlog.auth;
 
+import com.mygrinlog.admin.SeedService;
 import com.mygrinlog.common.web.ApiPaths;
 import com.mygrinlog.pet.PetStateService;
 import com.mygrinlog.user.User;
@@ -26,13 +27,16 @@ public class AuthController {
     private final TokenStore tokenStore;
     private final UserRepository userRepository;
     private final PetStateService petStateService;
+    private final SeedService seedService;
     private final AuthProperties properties;
 
     public AuthController(TokenStore tokenStore, UserRepository userRepository,
-                          PetStateService petStateService, AuthProperties properties) {
+                          PetStateService petStateService, SeedService seedService,
+                          AuthProperties properties) {
         this.tokenStore = tokenStore;
         this.userRepository = userRepository;
         this.petStateService = petStateService;
+        this.seedService = seedService;
         this.properties = properties;
     }
 
@@ -82,6 +86,8 @@ public class AuthController {
                 .orElseGet(() -> {
                     User saved = userRepository.save(new User(githubId, nickname, avatarUrl));
                     petStateService.getOrCreate(saved.getId());
+                    // 신규 유저에게 다이어리 7 + 회고 1 자동 시드 (사용자 격리됨, 각자 자기 유저 데이터)
+                    seedService.seedNewUser(saved.getId());
                     return saved;
                 });
     }

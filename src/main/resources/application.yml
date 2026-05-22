@@ -13,9 +13,13 @@ spring:
       api-key: ${ANTHROPIC_API_KEY:dummy-key-disabled}
       chat:
         options:
-          # per-call 로 override 하므로 여기는 안전한 기본값만.
+          # 모델만 default 로 둠. 실제 모델/온도는 per-call(LlmClient)에서 지정.
+          #
+          # ⚠ temperature 글로벌 default 를 두지 말 것:
+          #   claude-opus-4-7 같은 최신 모델이 temperature 를 deprecate 했음.
+          #   글로벌에 박으면 Spring AI 가 per-call options 위로 merge 해버려서
+          #   LlmClient 의 모델별 exclusion 이 우회되어 400 발생. (회고 작성/페르소나 생성 실패 원인)
           model: claude-sonnet-4-6
-          temperature: 0.7
 
 server:
   port: ${PORT:8080}   # Render/Fly/Heroku 류 PaaS 는 PORT 환경변수로 포트를 주입
@@ -58,13 +62,13 @@ wootegotchi:
     enabled: ${LLM_ENABLED:false}   # false 면 stub Generator 사용 (키 없이도 데모 가능)
     retries: 2                       # 호출 실패 시 재시도 횟수 (총 시도 = retries + 1)
     models:
-      # 카키 레퍼런스(techgochi) 의 모델 분배 그대로 차용:
-      #  - 퀄리티가 중요한 곳(persona, retro_writing) = Opus
-      #  - 빠른 응답이 중요한 곳(question) = Haiku
-      #  - 중간 + 분석 = Sonnet
-      persona:        { model: claude-opus-4-7,           temperature: 0.3, maxTokens: 4000 }
+      # 카키 레퍼런스(techgochi) 의 모델 분배 — 단, opus-4-7 은
+      # Anthropic 계정 권한/Spring AI 1.0.0-M3 응답 파싱 호환성 이슈로
+      # persona/retroWriting 도 sonnet-4-6 으로 통일. 동작 확인됨.
+      # 권한 풀리거나 Spring AI 업그레이드 후 다시 opus-4-7 로 올릴 수 있음.
+      persona:        { model: claude-sonnet-4-6,         temperature: 0.3, maxTokens: 4000 }
       question:       { model: claude-haiku-4-5-20251001, temperature: 0.7, maxTokens: 200  }
       diary:          { model: claude-sonnet-4-6,         temperature: 0.2, maxTokens: 4000 }
       retroAnalysis:  { model: claude-sonnet-4-6,         temperature: 0.3, maxTokens: 3000 }
-      retroWriting:   { model: claude-opus-4-7,           temperature: 0.6, maxTokens: 6000 }
+      retroWriting:   { model: claude-sonnet-4-6,         temperature: 0.6, maxTokens: 6000 }
       critique:       { model: claude-sonnet-4-6,         temperature: 0.1, maxTokens: 4000 }

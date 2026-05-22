@@ -129,9 +129,14 @@ public class RetrospectiveController {
 
     public record ListResponse(List<RetrospectiveListItem> retrospectives) {}
 
+    /**
+     * 워넬 자료 §2.4 명세 그대로 — 필드명을 `retrospectiveId` 로 통일 (`id` 가 아님).
+     * markdown 도 list 에 포함해 프론트가 Archive 의 RetrospectiveSheet 에서 별도 호출 없이 본문 표시 가능.
+     */
     public record RetrospectiveListItem(
-            Long id,
+            Long retrospectiveId,
             String title,
+            String markdown,
             String summary,
             List<String> tags,
             Retrospective.Type type,
@@ -140,13 +145,14 @@ public class RetrospectiveController {
             Instant createdAt
     ) {
         static RetrospectiveListItem from(Retrospective r) {
-            return new RetrospectiveListItem(r.getId(), r.getTitle(), r.getSummary(), r.getTags(),
+            return new RetrospectiveListItem(r.getId(), r.getTitle(), r.getMarkdown(),
+                    r.getSummary(), r.getTags(),
                     r.getType(), r.getRangeStartDate(), r.getRangeEndDate(), r.getCreatedAt());
         }
     }
 
     public record RetrospectiveDetail(
-            Long id,
+            Long retrospectiveId,
             String title,
             String markdown,
             String summary,
